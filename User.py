@@ -1,18 +1,15 @@
 # -*- coding:utf-8 -*-
-from MyDatabase import MyDatabase
 
 
 class User():
-    myDatabase = MyDatabase()
+    def getUser(self, data, myDatabase):
+        return myDatabase.getUserData(data['phone_number'])
 
-    def getUser(self, data):
-        return self.myDatabase.getUserData(data['phone_number'])
-
-    def addUser(self, data):
+    def addUser(self, data, myDatabase):
         from Entity import User
         user = User(name=data['name'], phone_number=data['phone_number'], password=data['password'],
                     avatar=data['avatar'])
-        return self.myDatabase.insertUserData(user)
+        return myDatabase.insertUserData(user)
 
-    def updataUser(self, data):
-        return self.myDatabase.updataUserData(data)
+    def updataUser(self, data, myDatabase):
+        return myDatabase.updataUserData(data)

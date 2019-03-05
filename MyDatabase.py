@@ -19,7 +19,7 @@ class MyDatabase():
         self.session = Session()
 
     def __del__(self):
-        self.session.close()
+        self.session.close_all()
 
     def getUserData(self, user_ID):  # 将对应用户的信息返回
         try:
@@ -32,8 +32,9 @@ class MyDatabase():
         try:
             self.session.add(user)
             self.session.commit()
+            return 1
         except:
-            return 1  # 数据插入失败
+            return None  # 数据插入失败
 
     def updataUserData(self, user):
         try:
@@ -45,74 +46,98 @@ class MyDatabase():
             if user['avatar'] is not None:
                 u.avatar = user['avatar']
             self.session.commit()
+            return 1
         except:
-            return 1  # 数据更新失败
+            return None  # 数据更新失败
 
     def getProduct(self, id):
         try:
             data = self.session.query(Product).filter_by(ID=id).first()
             return toJson(data)
         except:
-            return 1  # 查询商品失败
+            return None  # 查询商品失败
+
+    def getBanner(self):
+        try:
+            data = self.session.query(Product).limit(5).all()
+            return toJson(data)
+        except:
+            return None  # 获取轮播数据失败
 
     def insertProduct(self, product):
         try:
             self.session.add(product)
             self.session.commit()
+            return 1
         except:
-            return 1  # 添加商品失败
+            return None  # 添加商品失败
 
     def deleteProduct(self, id):
         try:
             data = self.session.query(Product).filter_by(ID=id).first()
             self.session.delete(data)
             self.session.commit()
+            return 1
         except:
-            return 1  # 删除数据失败
+            return None  # 删除数据失败
+
+    def getPageProduct(self, page):
+        try:
+            data = self.session.query(Product).slice(page * 10, (page + 1) * 10).all()
+            if len(data):
+                return toJson(data)
+            else:
+                return 1  # list为空
+        except:
+            return None  # 获取失败
 
     def getAddress(self, id):
         try:
             data = self.session.query(Address).filter_by(user_ID=id).all()  # 匹配所有的地址返回
             return toJson(data)
         except:
-            return 1  # 查询地址失败
+            return None  # 查询地址失败
 
     def insertAddress(self, address):
         try:
             self.session.add(address)
             self.session.commit()
+            return 1
         except:
-            return 1  # 插入数据失败
+            return None  # 插入数据失败
 
     def updataAddress(self, addr):
         try:
             data = self.session.query(Address).filter_by(add_ID=addr['add_ID']).first()
             data.address = addr['address']
             self.session.commit()
+            return 1
         except:
-            return 1  # 更新数据失败
+            return None  # 更新数据失败
 
     def deleteAddress(self, address):
         try:
             data = self.session.query(Address).filter_by(add_ID=address['add_ID']).first()
             self.session.delete(data)
             self.session.commit()
+            return 1
         except:
-            return 1  # 删除地址失败
+            return None  # 删除地址失败
 
     def getIndent(self, user_ID):
         try:
             data = self.session.query(Indent).filter_by(user_ID=user_ID).all()
             return toJson(data)
         except:
-            return 1  # 获取订单失败
+            return None  # 获取订单失败
 
     def insertIndent(self, indent):
         try:
             self.session.add(indent)
             self.session.commit()
+            return 1
         except:
-            return 1  # 插入订单失败
+            return None  # 插入订单失败
 
     def updataIndent(self, indent):
         try:
@@ -120,22 +145,24 @@ class MyDatabase():
                                                         product_ID=indent['product_ID']).first()
             data.state = indent['state']
             self.session.commit()
+            return 1
         except:
-            return 1  # 更新订单失败
+            return None  # 更新订单失败
 
     def getCollect(self, user_ID):
         try:
             data = self.session.query(Collect).filter_by(user_ID=user_ID).all()
             return toJson(data)
         except:
-            return 1  # 获取收藏信息失败
+            return None  # 获取收藏信息失败
 
     def insertCollect(self, collect):
         try:
             self.session.add(collect)
             self.session.commit()
+            return 1
         except:
-            return 1  # 插入数据失败
+            return None  # 插入数据失败
 
     def deleteCollect(self, collect):
         try:
@@ -143,5 +170,6 @@ class MyDatabase():
                                                          product_ID=collect['product_ID']).first()
             self.session.delete(data)
             self.session.commit()
+            return 1
         except:
-            return 1  # 删除收藏失败
+            return None  # 删除收藏失败
