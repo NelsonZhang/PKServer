@@ -29,6 +29,7 @@ class Product(Base):
     current_price = Column(String(128))
     time = Column(String(128))
     state = Column(String(128))
+    catalog = Column(String(128))
 
 
 class Indent(Base):

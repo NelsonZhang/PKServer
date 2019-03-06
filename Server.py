@@ -45,6 +45,7 @@ def form_product():
     data['current_price'] = request.form.get('current_price', default=0.00)
     data['time'] = request.form.get('time', default=nowTime)
     data['state'] = request.form.get('state', default=0)
+    data['catalog'] = request.form.get('catalog', default='未分类')
     return data
 
 
