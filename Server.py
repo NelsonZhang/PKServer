@@ -8,6 +8,7 @@ from flask import Flask, request, json
 
 from Address import Address
 from Collect import Collect
+from Entity import toJson
 from Indent import Indent
 from MyDatabase import MyDatabase
 from Product import Product
@@ -46,6 +47,33 @@ def form_product():
     data['time'] = request.form.get('time', default=nowTime)
     data['state'] = request.form.get('state', default=0)
     data['catalog'] = request.form.get('catalog', default='未分类')
+    return data
+
+
+def form_indent():
+    nowTime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    data = dict()
+    data['product_ID'] = request.form.get('product_ID', default=None)
+    data['user_ID'] = request.form.get('user_ID', default=None)
+    data['time'] = request.form.get('time', default=nowTime)
+    data['state'] = request.form.get('state', default='未发货')
+    data['number'] = request.form.get('number', default=1)
+    return data
+
+
+def form_address():
+    nowTime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    data = dict()
+    data['user_ID'] = request.form.get('user_ID', default=None)
+    data['address'] = request.form.get('address', default=None)
+    data['add_ID'] = request.form.get('add_ID', default=nowTime)
+    return data
+
+
+def form_collect():
+    data = dict()
+    data['product_ID'] = request.form.get('product_ID', default=None)
+    data['user_ID'] = request.form.get('user_ID', default=None)
     return data
 
 
@@ -147,6 +175,86 @@ def getBanner():
 def getPageProduct():
     page = request.form['page']
     return return_message(product.getPageProduct(page, myDatabase))
+
+
+@app.route('/getAddress', methods=['POST'])
+def getAddress():
+    return return_message(address.getAddress(form_address(), myDatabase))
+
+
+@app.route('/insertAddress', methods=['POST'])
+def insertAddress():
+    return return_message(address.insertAddress(form_address(), myDatabase))
+
+
+@app.route('/updataAddress', methods=['POST'])
+def updataAddress():
+    return return_message(address.updataAddress(form_address(), myDatabase))
+
+
+@app.route('/deleteAddress', methods=['POST'])
+def deleteAddress():
+    return return_message(address.deleteAddress(form_address(), myDatabase))
+
+
+@app.route('/insertIndent', methods=['POST'])
+def insertIndent():
+    return return_message(indent.insertIndent(form_indent(), myDatabase))
+
+
+@app.route('/updataIndent', methods=['POST'])
+def updataIndent():
+    return return_message(indent.updataIndent(form_indent(), myDatabase))
+
+
+@app.route('/getIndent', methods=['POST'])
+def getIndent():
+    datas = indent.getIndent(form_indent(), myDatabase)
+    datas = json.loads(datas)
+    if len(datas):
+        temps = []
+        for data in datas:
+            temp = {}
+            pro = myDatabase.getProduct(data['product_ID'])
+            pro = json.loads(pro)
+            temp['product_name'] = pro['name']
+            temp['price'] = pro['current_price']
+            temp['picture'] = pro['picture']
+            temp['information'] = pro['information']
+            temp = dict(temp, **data)
+            temps.append(temp)
+        return return_message(toJson(temps))
+    return return_message(None)
+
+
+@app.route('/insertCollect', methods=['POST'])
+def insertCollect():
+    return return_message(collect.insertCollect(form_collect(), myDatabase))
+
+
+@app.route('/deleteCollect', methods=['POST'])
+def deleteCollect():
+    return return_message(collect.deleteCollect(form_collect(), myDatabase))
+
+
+@app.route('/getCollect', methods=['POST'])
+def getCollect():
+    datas = collect.getCollect(form_collect(), myDatabase)
+    datas = json.loads(datas)
+    if len(datas):
+        temps = []
+        for data in datas:
+            temp = {}
+            pro = myDatabase.getProduct(data['product_ID'])
+            pro = json.loads(pro)
+            temp['product_name'] = pro['name']
+            temp['price'] = pro['current_price']
+            temp['picture'] = pro['picture']
+            temp['information'] = pro['information']
+            temp = dict(temp, **data)
+            temps.append(temp)
+        return return_message(toJson(temps))
+    return return_message(None)
 
 
 if __name__ == '__main__':

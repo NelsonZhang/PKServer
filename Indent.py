@@ -1,17 +1,15 @@
 # -*- coding:utf-8 -*-
-from MyDatabase import MyDatabase
 
 
 class Indent():
-    myDatabase = MyDatabase()
+    def getIndent(self, data, myDatabase):
+        return myDatabase.getIndent(data['user_ID'])
 
-    def getIndent(self, data):
-        return self.myDatabase.getIndent(data['user_ID'])
-
-    def insertIndent(self, data):
+    def insertIndent(self, data, myDatabase):
         from Entity import Indent
-        indent = Indent(user_ID=data['user_ID'], product_ID=data['product_ID'], state=data['state'], time=data['time'])
-        return self.myDatabase.insertIndent(indent)
+        indent = Indent(user_ID=data['user_ID'], product_ID=data['product_ID'], state=data['state'], time=data['time'],
+                        number=data['number'])
+        return myDatabase.insertIndent(indent)
 
-    def updataIndent(self, data):
-        return self.myDatabase.updataIndent(data)
+    def updataIndent(self, data, myDatabase):
+        return myDatabase.updataIndent(data)

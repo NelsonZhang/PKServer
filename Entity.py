@@ -38,6 +38,7 @@ class Indent(Base):
     user_ID = Column(String(128), ForeignKey("user.phone_number", ondelete="CASCADE"), primary_key=True)
     time = Column(String(128))
     state = Column(String(128))
+    number = Column(String(128))
 
 
 class Collect(Base):

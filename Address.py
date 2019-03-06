@@ -1,20 +1,17 @@
 # -*- coding:utf-8 -*-
-from MyDatabase import MyDatabase
 
 
 class Address():
-    myDatabase = MyDatabase()
+    def getAddress(self, data, myDatabase):
+        return myDatabase.getAddress(data['user_ID'])
 
-    def getAddress(self, data):
-        return self.myDatabase.getAddress(data['user_ID'])
-
-    def insertAddress(self, data):
+    def insertAddress(self, data, myDatabase):
         from Entity import Address
         address = Address(user_ID=data['user_ID'], address=data['address'], add_ID=data['add_ID'])
-        return self.myDatabase.insertAddress(address)
+        return myDatabase.insertAddress(address)
 
-    def updataAddress(self, data):
-        return self.myDatabase.updataAddress(data)
+    def updataAddress(self, data, myDatabase):
+        return myDatabase.updataAddress(data)
 
-    def deleteAddress(self, data):
-        return self.myDatabase.deleteAddress(data)
+    def deleteAddress(self, data, myDatabase):
+        return myDatabase.deleteAddress(data)
