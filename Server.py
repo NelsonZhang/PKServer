@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import datetime
+import os
 import random
 
 import redis
@@ -92,7 +93,7 @@ def return_message(data):
 
 def verCode(phone_number):
     temp = str(random.randint(1000, 9999))
-    my_redis.set(phone_number, temp, ex=300)
+    my_redis.set(phone_number, temp, ex=3000)
     data = dict()
     data['sid'] = '385e85924cfcd6a848f389396dfee5b0'
     data['token'] = 'a70188b07093e33e7cdb56815b7307dd'
@@ -113,8 +114,7 @@ def getUser():
 def insertUser():
     temp = form_user()
     if my_redis.get(temp['phone_number']) == request.form['check_number']:
-        data = user.addUser(temp, myDatabase)
-        return return_message(data)
+        return return_message(user.addUser(temp, myDatabase))
     return return_message(None)
 
 
@@ -155,14 +155,20 @@ def getProduct():
 
 @app.route('/insertProduct', methods=['POST'])
 def insertProduct():
-    data = product.insertProduct(form_product(), myDatabase)
-    return return_message(data)
+    data = form_product()
+    pic = request.files['file']
+    if pic:
+        file_name = pic.filename
+        file_name = data['ID'] + '.' + file_name.split('.')[1]
+        data['picture'] = 'http://120.79.87.68/picture/' + file_name
+        file_name = '../120.79.87.68/picture/' + file_name
+        pic.save(file_name)
+    return return_message(product.insertProduct(data, myDatabase))
 
 
 @app.route('/deleteProduct', methods=['POST'])
 def deleteProduct():
-    data = product.deleteProduct(form_product(), myDatabase)
-    return return_message(data)
+    return return_message(product.deleteProduct(form_product(), myDatabase))
 
 
 @app.route('/getBanner', methods=['GET'])
@@ -257,6 +263,21 @@ def getCollect():
     return return_message(None)
 
 
+@app.route('/insertAvatar', methods=['POST'])
+def insertAvatar():
+    phone_number = request.form['phone_number']
+    temp = json.loads(myDatabase.getUserData(phone_number))
+    avatar = request.files['file']
+    if avatar:
+        file_name = avatar.filename
+        file_name = phone_number + '.' + file_name.split('.')[1]
+        temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name
+        file_name = '../120.79.87.68/avatar/' + file_name
+        avatar.save(file_name)
+        return return_message(user.updataUser(temp, myDatabase))
+    return return_message(None)
+
+
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', port=5000)
-    app.run(host='localhost', port=5000)
+    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='localhost', port=5000)
