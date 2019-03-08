@@ -156,14 +156,17 @@ def getProduct():
 @app.route('/insertProduct', methods=['POST'])
 def insertProduct():
     data = form_product()
-    pic = request.files['file']
-    if pic:
-        file_name = pic.filename
-        file_name = data['ID'] + '.' + file_name.split('.')[1]
-        data['picture'] = 'http://120.79.87.68/picture/' + file_name
-        file_name = '../120.79.87.68/picture/' + file_name
-        pic.save(file_name)
-    return return_message(product.insertProduct(data, myDatabase))
+    try:
+        pic = request.files['file']
+        if pic:
+            file_name = pic.filename
+            file_name = data['ID'] + '.' + file_name.split('.')[1]
+            data['picture'] = 'http://120.79.87.68/picture/' + file_name
+            file_name = '../120.79.87.68/picture/' + file_name
+            pic.save(file_name)
+        return return_message(product.insertProduct(data, myDatabase))
+    except:
+        return return_message(None)
 
 
 @app.route('/deleteProduct', methods=['POST'])
@@ -267,15 +270,17 @@ def getCollect():
 def insertAvatar():
     phone_number = request.form['phone_number']
     temp = json.loads(myDatabase.getUserData(phone_number))
-    avatar = request.files['file']
-    if avatar:
-        file_name = avatar.filename
-        file_name = phone_number + '.' + file_name.split('.')[1]
-        temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name
-        file_name = '../120.79.87.68/avatar/' + file_name
-        avatar.save(file_name)
-        return return_message(user.updataUser(temp, myDatabase))
-    return return_message(None)
+    try:
+        avatar = request.files['file']
+        if avatar:
+            file_name = avatar.filename
+            file_name = phone_number + '.' + file_name.split('.')[1]
+            temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name
+            file_name = '../120.79.87.68/avatar/' + file_name
+            avatar.save(file_name)
+            return return_message(user.updataUser(temp, myDatabase))
+    except:
+        return return_message(None)
 
 
 if __name__ == '__main__':
