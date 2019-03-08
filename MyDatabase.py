@@ -87,7 +87,7 @@ class MyDatabase():
             if len(data):
                 return toJson(data)
             else:
-                return 1  # list为空
+                return None  # list为空
         except:
             return None  # 获取失败
 
