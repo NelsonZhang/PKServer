@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import datetime
-import os
 import random
 
 import redis
@@ -46,7 +45,7 @@ def form_product():
     data['start_price'] = request.form.get('start_price', default=0.00)
     data['current_price'] = request.form.get('current_price', default=0.00)
     data['time'] = request.form.get('time', default=nowTime)
-    data['state'] = request.form.get('state', default=0)
+    data['state'] = request.form.get('state', default=None)
     data['catalog'] = request.form.get('catalog', default='未分类')
     return data
 
@@ -54,11 +53,12 @@ def form_product():
 def form_indent():
     nowTime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     data = dict()
-    data['product_ID'] = request.form.get('product_ID', default=None)
-    data['user_ID'] = request.form.get('user_ID', default=None)
+    data['product_ID'] = request.form.get('product_ID')
+    data['user_ID'] = request.form.get('user_ID')
     data['time'] = request.form.get('time', default=nowTime)
-    data['state'] = request.form.get('state', default='未发货')
+    data['state'] = request.form.get('state', default=None)
     data['number'] = request.form.get('number', default=1)
+    data['my_price'] = request.form.get('my_price', default=0.00)
     return data
 
 
@@ -208,12 +208,28 @@ def deleteAddress():
 
 @app.route('/insertIndent', methods=['POST'])
 def insertIndent():
-    return return_message(indent.insertIndent(form_indent(), myDatabase))
+    temp = form_indent()
+    data = json.loads(myDatabase.getProduct(temp['product_ID']))
+    if (float(temp['my_price']) - float(data['current_price'])) > 0.01:
+        data['current_price'] = temp['my_price']
+    pro = product.updataProduct(data, myDatabase)
+    inden = indent.insertIndent(temp, myDatabase)
+    if pro is None or inden is None:
+        return return_message(None)
+    return return_message(1)
 
 
 @app.route('/updataIndent', methods=['POST'])
 def updataIndent():
-    return return_message(indent.updataIndent(form_indent(), myDatabase))
+    temp = form_indent()
+    data = json.loads(myDatabase.getProduct(temp['product_ID']))
+    if float(temp['my_price']) - float(data['current_price']) > 0.01:
+        data['current_price'] = temp['my_price']
+    pro = product.updataProduct(data, myDatabase)
+    inden = indent.updataIndent(temp, myDatabase)
+    if pro is None or inden is None:
+        return return_message(None)
+    return return_message(1)
 
 
 @app.route('/getIndent', methods=['POST'])
@@ -284,5 +300,5 @@ def insertAvatar():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-    # app.run(host='localhost', port=5000)
+    # app.run(host='0.0.0.0', port=5000)
+    app.run(host='localhost', port=5000)

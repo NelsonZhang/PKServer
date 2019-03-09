@@ -34,6 +34,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 数据插入失败
 
     def updataUserData(self, user):
@@ -48,6 +49,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 数据更新失败
 
     def getProduct(self, id):
@@ -79,6 +81,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 删除数据失败
 
     def getPageProduct(self, page):
@@ -90,6 +93,20 @@ class MyDatabase():
                 return None  # list为空
         except:
             return None  # 获取失败
+
+    def updataProduct(self, product):
+        try:
+            data = self.session.query(Product).filter_by(ID=product['ID']).first()
+            if product['state'] is not None:
+                data.state = product['state']
+            if float(data.current_price) - float(product['current_price']) < -0.01:
+                data.current_price = product['current_price']
+                data.person_number = int(data.person_number) + 1
+            self.session.commit()
+            return 1
+        except:
+            self.session.rollback()
+            return None
 
     def getAddress(self, id):
         try:
@@ -104,6 +121,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 插入数据失败
 
     def updataAddress(self, addr):
@@ -113,6 +131,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 更新数据失败
 
     def deleteAddress(self, address):
@@ -122,13 +141,14 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 删除地址失败
 
     def getIndent(self, user_ID):
         try:
             data = self.session.query(Indent).filter_by(user_ID=user_ID).all()
             return toJson(data)
-        except:
+        except :
             return None  # 获取订单失败
 
     def insertIndent(self, indent):
@@ -137,16 +157,21 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 插入订单失败
 
     def updataIndent(self, indent):
         try:
             data = self.session.query(Indent).filter_by(user_ID=indent['user_ID'],
                                                         product_ID=indent['product_ID']).first()
-            data.state = indent['state']
+            if indent['state'] is not None:
+                data.state = indent['state']
+            if float(indent['my_price']) - float(data.my_price) > 0.00:
+                data.my_price = indent['my_price']
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 更新订单失败
 
     def getCollect(self, user_ID):
@@ -162,6 +187,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 插入数据失败
 
     def deleteCollect(self, collect):
@@ -172,4 +198,5 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 删除收藏失败

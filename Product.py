@@ -8,7 +8,8 @@ class Product():
         from Entity import Product
         product = Product(name=data['name'], ID=data['ID'], user_ID=data['user_ID'], picture=data['picture'],
                           start_price=data['start_price'], current_price=data['current_price'], time=data['time'],
-                          state=data['state'], information=data['information'], catalog=data['catalog'])
+                          state=data['state'], information=data['information'], catalog=data['catalog'],
+                          person_number=data['person_number'])
         return myDatabase.insertProduct(product)
 
     def deleteProduct(self, data, myDatabase):
@@ -19,3 +20,6 @@ class Product():
 
     def getPageProduct(self, page, myDatabasse):
         return myDatabasse.getPageProduct(int(page))
+
+    def updataProduct(self, data, myDatabase):
+        return myDatabase.updataProduct(data)

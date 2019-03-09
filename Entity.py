@@ -30,6 +30,7 @@ class Product(Base):
     time = Column(String(128))
     state = Column(String(128))
     catalog = Column(String(128))
+    person_number = Column(String(128))
 
 
 class Indent(Base):
@@ -39,6 +40,7 @@ class Indent(Base):
     time = Column(String(128))
     state = Column(String(128))
     number = Column(String(128))
+    my_price = Column(String(128))
 
 
 class Collect(Base):

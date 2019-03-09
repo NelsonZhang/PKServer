@@ -8,7 +8,7 @@ class Indent():
     def insertIndent(self, data, myDatabase):
         from Entity import Indent
         indent = Indent(user_ID=data['user_ID'], product_ID=data['product_ID'], state=data['state'], time=data['time'],
-                        number=data['number'])
+                        number=data['number'], my_price=data['my_price'])
         return myDatabase.insertIndent(indent)
 
     def updataIndent(self, data, myDatabase):
