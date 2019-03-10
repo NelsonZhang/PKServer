@@ -291,8 +291,10 @@ def insertAvatar():
         if avatar:
             file_name = avatar.filename
             file_name = phone_number + '.' + file_name.split('.')[1]
-            temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name
-            file_name = '../120.79.87.68/avatar/' + file_name
+            # temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name  # 服务器保存地址
+            # file_name = '../120.79.87.68/avatar/' + file_name
+            temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name  # 本地保存地址
+            file_name = file_name
             avatar.save(file_name)
             return return_message(user.updataUser(temp, myDatabase))
     except:

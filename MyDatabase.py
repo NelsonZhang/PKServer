@@ -26,6 +26,7 @@ class MyDatabase():
             data = self.session.query(User).filter_by(phone_number=user_ID).first()
             return toJson(data)
         except:
+            self.session.rollback()
             return None  # 无法获取用户信息
 
     def insertUserData(self, user):  # 插入新的用户信息
@@ -57,6 +58,7 @@ class MyDatabase():
             data = self.session.query(Product).filter_by(ID=id).first()
             return toJson(data)
         except:
+            self.session.rollback()
             return None  # 查询商品失败
 
     def getBanner(self):
@@ -64,6 +66,7 @@ class MyDatabase():
             data = self.session.query(Product).limit(5).all()
             return toJson(data)
         except:
+            self.session.rollback()
             return None  # 获取轮播数据失败
 
     def insertProduct(self, product):
@@ -72,6 +75,7 @@ class MyDatabase():
             self.session.commit()
             return 1
         except:
+            self.session.rollback()
             return None  # 添加商品失败
 
     def deleteProduct(self, id):
@@ -92,6 +96,7 @@ class MyDatabase():
             else:
                 return None  # list为空
         except:
+            self.session.rollback()
             return None  # 获取失败
 
     def updataProduct(self, product):
@@ -113,6 +118,7 @@ class MyDatabase():
             data = self.session.query(Address).filter_by(user_ID=id).all()  # 匹配所有的地址返回
             return toJson(data)
         except:
+            self.session.rollback()
             return None  # 查询地址失败
 
     def insertAddress(self, address):
@@ -149,6 +155,7 @@ class MyDatabase():
             data = self.session.query(Indent).filter_by(user_ID=user_ID).all()
             return toJson(data)
         except :
+            self.session.rollback()
             return None  # 获取订单失败
 
     def insertIndent(self, indent):
@@ -179,6 +186,7 @@ class MyDatabase():
             data = self.session.query(Collect).filter_by(user_ID=user_ID).all()
             return toJson(data)
         except:
+            self.session.rollback()
             return None  # 获取收藏信息失败
 
     def insertCollect(self, collect):
