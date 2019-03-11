@@ -8,7 +8,7 @@ class User():
     def addUser(self, data, myDatabase):
         from Entity import User
         user = User(name=data['name'], phone_number=data['phone_number'], password=data['password'],
-                    avatar=data['avatar'])
+                    avatar=data['avatar'], userSig=data['userSig'])
         return myDatabase.insertUserData(user)
 
     def updataUser(self, data, myDatabase):

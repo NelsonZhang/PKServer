@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 import datetime
 import random
-
 import redis
 import requests
+import TLSSigAPI
 from flask import Flask, request, json
-
 from Address import Address
 from Collect import Collect
 from Entity import toJson
@@ -13,7 +12,9 @@ from Indent import Indent
 from MyDatabase import MyDatabase
 from Product import Product
 from User import User
-
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+monkey.patch_all()
 app = Flask(__name__)
 
 myDatabase = MyDatabase()
@@ -23,6 +24,19 @@ product = Product()
 collect = Collect()
 indent = Indent()
 address = Address()
+pri_key_content = """
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgmAd2xs2iwHTThtnC
+2o77UwgQLyYkK7nQj8Sr8T5k8wChRANCAASMjhMydCwHIN9xJDhITAuh7IqIF2Sa
+Swe0fJMkL7/gezpLZC3OAgp4QTf93sfNXEzruX3d5AyAmqNpD6GlGTBX
+-----END PRIVATE KEY-----
+"""
+pub_key_content = """
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEjI4TMnQsByDfcSQ4SEwLoeyKiBdk
+mksHtHyTJC+/4Hs6S2QtzgIKeEE3/d7HzVxM67l93eQMgJqjaQ+hpRkwVw==
+-----END PUBLIC KEY-----
+"""
 
 
 def form_user():
@@ -31,6 +45,7 @@ def form_user():
     data["name"] = request.form.get("name", default=None)
     data["password"] = request.form.get("password", default=None)
     data["avatar"] = request.form.get("avatar", default=None)
+    data['userSig'] = request.form.get("userSig", default=None)
     return data
 
 
@@ -45,7 +60,7 @@ def form_product():
     data['start_price'] = request.form.get('start_price', default=0.00)
     data['current_price'] = request.form.get('current_price', default=0.00)
     data['time'] = request.form.get('time', default=nowTime)
-    data['state'] = request.form.get('state', default=None)
+    data['state'] = request.form.get('state', default=0)
     data['catalog'] = request.form.get('catalog', default='未分类')
     return data
 
@@ -53,12 +68,11 @@ def form_product():
 def form_indent():
     nowTime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     data = dict()
-    data['product_ID'] = request.form.get('product_ID')
-    data['user_ID'] = request.form.get('user_ID')
+    data['product_ID'] = request.form.get('product_ID', default=None)
+    data['user_ID'] = request.form.get('user_ID', default=None)
     data['time'] = request.form.get('time', default=nowTime)
-    data['state'] = request.form.get('state', default=None)
+    data['state'] = request.form.get('state', default='未发货')
     data['number'] = request.form.get('number', default=1)
-    data['my_price'] = request.form.get('my_price', default=0.00)
     return data
 
 
@@ -104,6 +118,12 @@ def verCode(phone_number):
     return data
 
 
+def build_userSig(phone_number):
+    api = TLSSigAPI.TLSSigAPI(1400190762, pri_key_content, pub_key_content)
+    sig = api.gen_sig(phone_number)
+    return sig
+
+
 @app.route("/getUser", methods=['POST'])
 def getUser():
     data = user.getUser(form_user(), myDatabase)
@@ -113,6 +133,7 @@ def getUser():
 @app.route('/insertUser', methods=['POST'])
 def insertUser():
     temp = form_user()
+    temp['userSig'] = build_userSig(temp['phone_number'])
     if my_redis.get(temp['phone_number']) == request.form['check_number']:
         return return_message(user.addUser(temp, myDatabase))
     return return_message(None)
@@ -174,7 +195,7 @@ def deleteProduct():
     return return_message(product.deleteProduct(form_product(), myDatabase))
 
 
-@app.route('/getBanner', methods=['GET'])
+@app.route('/getBanner', methods=['POST'])
 def getBanner():
     data = product.getBanner(myDatabase)
     return return_message(data)
@@ -208,28 +229,12 @@ def deleteAddress():
 
 @app.route('/insertIndent', methods=['POST'])
 def insertIndent():
-    temp = form_indent()
-    data = json.loads(myDatabase.getProduct(temp['product_ID']))
-    if (float(temp['my_price']) - float(data['current_price'])) > 0.01:
-        data['current_price'] = temp['my_price']
-    pro = product.updataProduct(data, myDatabase)
-    inden = indent.insertIndent(temp, myDatabase)
-    if pro is None or inden is None:
-        return return_message(None)
-    return return_message(1)
+    return return_message(indent.insertIndent(form_indent(), myDatabase))
 
 
 @app.route('/updataIndent', methods=['POST'])
 def updataIndent():
-    temp = form_indent()
-    data = json.loads(myDatabase.getProduct(temp['product_ID']))
-    if float(temp['my_price']) - float(data['current_price']) > 0.01:
-        data['current_price'] = temp['my_price']
-    pro = product.updataProduct(data, myDatabase)
-    inden = indent.updataIndent(temp, myDatabase)
-    if pro is None or inden is None:
-        return return_message(None)
-    return return_message(1)
+    return return_message(indent.updataIndent(form_indent(), myDatabase))
 
 
 @app.route('/getIndent', methods=['POST'])
@@ -291,10 +296,8 @@ def insertAvatar():
         if avatar:
             file_name = avatar.filename
             file_name = phone_number + '.' + file_name.split('.')[1]
-            # temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name  # 服务器保存地址
-            # file_name = '../120.79.87.68/avatar/' + file_name
-            temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name  # 本地保存地址
-            file_name = file_name
+            temp['avatar'] = 'http://120.79.87.68/avatar/' + file_name
+            file_name = '../120.79.87.68/avatar/' + file_name
             avatar.save(file_name)
             return return_message(user.updataUser(temp, myDatabase))
     except:
@@ -303,4 +306,7 @@ def insertAvatar():
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)
-    app.run(host='localhost', port=5000)
+    # app.run(host='localhost', port=5000, threaded=True)
+    http_server = WSGIServer(('localhost', 5000), app)
+    # http_server = WSGIServer(('0.0.0.0', 5000), app)
+    http_server.serve_forever()
