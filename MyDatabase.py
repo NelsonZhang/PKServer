@@ -173,7 +173,7 @@ class MyDatabase():
                                                         product_ID=indent['product_ID']).first()
             if indent['state'] is not None:
                 data.state = indent['state']
-            if float(indent['my_price']) - float(data.my_price) > 0.00:
+            if float(indent['my_price']) - float(data.my_price) >= 0.01:
                 data.my_price = indent['my_price']
             self.session.commit()
             return 1

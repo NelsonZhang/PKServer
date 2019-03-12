@@ -16,7 +16,7 @@ class User(Base):
     phone_number = Column(String(128), primary_key=True)
     password = Column(String(128))
     avatar = Column(String(128))
-    userSig = Column(String(128))
+    userSig = Column(String(1024))
 
 
 class Product(Base):

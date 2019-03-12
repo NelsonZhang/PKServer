@@ -14,6 +14,7 @@ from Product import Product
 from User import User
 from gevent import monkey
 from gevent.pywsgi import WSGIServer
+
 monkey.patch_all()
 app = Flask(__name__)
 
@@ -73,6 +74,7 @@ def form_indent():
     data['time'] = request.form.get('time', default=nowTime)
     data['state'] = request.form.get('state', default='未发货')
     data['number'] = request.form.get('number', default=1)
+    data['my_price'] = request.form.get('my_price', default=0.00)
     return data
 
 
@@ -152,7 +154,7 @@ def login():
     if data is None:
         return return_message(None)
     if temp['password'] == data['password']:
-        return return_message(1)
+        return return_message(json.dumps(data))
     return return_message(None)
 
 
@@ -229,12 +231,26 @@ def deleteAddress():
 
 @app.route('/insertIndent', methods=['POST'])
 def insertIndent():
-    return return_message(indent.insertIndent(form_indent(), myDatabase))
+    data = form_indent()
+    pro = json.loads(myDatabase.getProduct(data['product_ID']))
+    pro['current_price'] = data['my_price']
+    pro_flag = product.updataProduct(pro, myDatabase)
+    ind_flag = indent.insertIndent(data, myDatabase)
+    if pro_flag is None or ind_flag is None:
+        return return_message(None)
+    return return_message(1)
 
 
 @app.route('/updataIndent', methods=['POST'])
 def updataIndent():
-    return return_message(indent.updataIndent(form_indent(), myDatabase))
+    data = form_indent()
+    pro = json.loads(myDatabase.getProduct(data['product_ID']))
+    pro['current_price'] = data['my_price']
+    pro_flag = product.updataProduct(pro, myDatabase)
+    ind_flag = indent.updataIndent(data, myDatabase)
+    if pro_flag is None or ind_flag is None:
+        return return_message(None)
+    return return_message(1)
 
 
 @app.route('/getIndent', methods=['POST'])
@@ -250,6 +266,7 @@ def getIndent():
             temp['product_name'] = pro['name']
             temp['price'] = pro['current_price']
             temp['picture'] = pro['picture']
+            temp['start_price'] = pro['start_price']
             temp['information'] = pro['information']
             temp = dict(temp, **data)
             temps.append(temp)
